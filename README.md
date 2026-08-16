@@ -25,7 +25,7 @@ The Microsoft IPP Class Driver normally only shows **A4** / **Letter**. On first
 2. Creates a Windows Print Server form named **T50 40x30 mm** (or the current tape size)
 3. Sets that form as the only paper size on the **T50 Label** queue (A4/Letter are removed from the queue GPD)
 
-Then in Word, Chrome, Acrobat, 3uTools, and so on:
+Then in Word, Chrome, Acrobat, and so on:
 
 1. Choose printer **T50 Label**
 2. Set paper / page size to **T50 40x30 mm** (or your tape’s form name)
@@ -35,7 +35,7 @@ If you change rolls to a different size, run **Repair printer…** again so the 
 
 ### Crop whitespace
 
-**Crop whitespace** (on by default in the T50 Label window) trims blank margins before centering on the tape. Turn it **off** if you need app margins (for example 2 mm vs 3 mm in 3uTools) to stay on the label.
+**Crop whitespace** (on by default in the T50 Label window) trims blank margins before centering on the tape. Turn it **off** if you need app margins (for example 2 mm vs 3 mm) to stay on the label.
 
 The official **Katasymbol Editor** and this app **cannot share the HID device**. Quit the vendor app first; this project stops `Supvan_T50_Service` on start.
 
