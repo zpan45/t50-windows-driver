@@ -118,7 +118,7 @@ Details: [docs/architecture.md](docs/architecture.md), [docs/windows-printing.md
 
 ## Known limits
 
-- **Paper size in the print dialog is A4/Letter.** Custom PWG names are ignored. Patching the IPP class driver’s GPD/PDC was tried and **breaks** `DeviceCapabilities` (empty paper list). Do not revive that path (`t50/winpaper.py` is unused).
+- **Paper size in the print dialog** is the loaded tape. Setup creates a Print Server form named **T50 40x30 mm** (or the current tape size), sets it as default, and drops A4/Letter from the queue GPD. Do not use `apply_label_paper()` (that PDC patch breaks `DeviceCapabilities`).
 - **203 DPI thermal** is the physical limit. Vector PDFs are rasterized by Windows with gray edges; the app sharpens and thresholds. Asking Windows for 406 DPI (when the driver honors it) and then downsampling can look a bit cleaner.
 - **Orientation** is tuned for landscape labels (for example 40×30 mm) that Windows places as a tall crop on A4. Other page shapes may need a layout tweak.
 - Not a signed WHQL driver. Some enterprise policies block unsigned local IPP printers.

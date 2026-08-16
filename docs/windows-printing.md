@@ -10,11 +10,17 @@ Add-Printer -IppURL http://127.0.0.1:8631/ipp/print
 
 The Microsoft **IPP Class Driver** (v4) is attached. `-Name` is ignored; the queue is named from IPP `printer-name` → **T50 Label**.
 
-Repair (`python -m t50 setup` / the UI button) is: stop vendor service → `Remove-Printer` → `Add-Printer -IppURL`. It does **not** change paper sizes.
+Repair (`python -m t50 setup` / the UI button) is: stop vendor service → `Remove-Printer` → `Add-Printer -IppURL` → create a Print Server form for the loaded tape → patch the queue GPD so that form is the only paper size.
 
-## Why Acrobat shows A4
+## Custom label sizes (40×30 mm, etc.)
 
-The class driver only exposes a handful of office sizes (**A4**, **Letter**). Custom PWG self-describing names such as `om_40x30-label_40000x30000um` are ignored. `Get-PrintConfiguration` stays on A4.
+Setup creates a user form named **T50 40x30 mm** (size comes from the loaded tape, or 40×30 if the printer is not open). It writes that name into the per-queue GPD, sets it as the default, and removes A4/Letter from the GPD. Extra forms you created by hand (for example **Supvan Label**) are left in Print Server Properties but are not listed on **T50 Label**.
+
+Do not patch `pdc.xml`. If you change tape size, run **Repair printer…** again.
+
+## Why Acrobat still defaults to A4 sometimes
+
+The class driver only exposes a handful of office sizes from IPP (**A4**, **Letter**) until the GPD patch above runs. Custom PWG self-describing names such as `om_40x30-label_40000x30000um` are still ignored by Windows. `Get-PrintConfiguration` may stay on A4 until you pick a custom form in preferences.
 
 We tried rewriting:
 
@@ -22,9 +28,9 @@ We tried rewriting:
 C:\Windows\System32\spool\V4Dirs\<guid>\pdc.xml
 ```
 
-plus the generated GPD to inject 40×30 mm. That emptied `DeviceCapabilities` (no paper list, `Get-PrintConfiguration` 0x80004005). **Abandoned.** `t50/winpaper.py` remains for tests only and must not be called from `add_ipp_printer()`.
+plus the generated GPD to inject a fixed 40×30 mm PrintSchema option. That emptied `DeviceCapabilities` (no paper list, `Get-PrintConfiguration` 0x80004005). **Abandoned.** `apply_label_paper()` in `t50/winpaper.py` remains for tests only.
 
-Practical rule: design the PDF at the tape size (40×30 mm, etc.) and print **Actual size**. Windows paints that page onto A4; this app crops the ink.
+Practical rule: create a Print Server Property form at the tape size, select it in **T50 Label** preferences, and print **Actual size**. Windows paints that page; this app crops the ink onto the tape.
 
 ## Job payload
 

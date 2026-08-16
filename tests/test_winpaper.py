@@ -1,6 +1,15 @@
 import unittest
 
-from t50.winpaper import display_name, option_keyword, patch_gpd_text, patch_pdc_text
+from t50.winpaper import (
+    display_name,
+    form_option_keyword,
+    label_form_name,
+    option_keyword,
+    patch_gpd_customsize,
+    patch_gpd_forms,
+    patch_gpd_text,
+    patch_pdc_text,
+)
 
 
 GPD = """*MasterUnits: PAIR(457200, 457200)
@@ -62,6 +71,48 @@ class WinPaperTests(unittest.TestCase):
         self.assertIn("ISOA4", out)
         self.assertIn("psf2:default=\"true\"", out)
         self.assertNotIn(">111<", out)
+
+    def test_patch_gpd_customsize_inserts_option(self):
+        out = patch_gpd_customsize(GPD)
+        self.assertIn("*Option: CUSTOMSIZE", out)
+        self.assertIn("*rcNameID: =USER_DEFINED_SIZE_DISPLAY", out)
+        self.assertIn("*MinSize: PAIR(180000, 180000)", out)
+        self.assertIn("*MaxSize: PAIR(864000, 5400000)", out)
+        self.assertIn("*MaxPrintableWidth: 864000", out)
+        self.assertIn("*Option: A4", out)
+        self.assertIn("*Option: LETTER", out)
+
+    def test_patch_gpd_customsize_idempotent(self):
+        once = patch_gpd_customsize(GPD)
+        twice = patch_gpd_customsize(once)
+        self.assertEqual(once.count("*Option: CUSTOMSIZE"), 1)
+        self.assertEqual(once, twice)
+
+    def test_form_option_keyword(self):
+        self.assertEqual(form_option_keyword("Supvan Label"), "FORM_Supvan_Label")
+        self.assertEqual(label_form_name(40, 30), "T50 40x30 mm")
+        self.assertEqual(
+            form_option_keyword("Supval Label(40mmX30mm)"),
+            "FORM_Supval_Label_40mmX30mm",
+        )
+
+    def test_patch_gpd_forms_uses_form_name(self):
+        out = patch_gpd_forms(GPD, [("T50 40x30 mm", 40, 30)])
+        self.assertIn("*Option: FORM_T50_40x30_mm", out)
+        self.assertIn('*Name: "T50 40x30 mm"', out)
+        self.assertIn("*PageDimensions: PAIR(720000, 540000)", out)
+        self.assertIn("*DefaultOption: FORM_T50_40x30_mm", out)
+        self.assertNotIn("*Option: A4", out)
+        self.assertNotIn("*Option: LETTER", out)
+        self.assertNotIn("*Option: CUSTOMSIZE", out)
+        self.assertIn("*Feature: PageBorderless", out)
+
+    def test_patch_gpd_forms_replaces_customsize(self):
+        with_custom = patch_gpd_customsize(GPD)
+        out = patch_gpd_forms(with_custom, [("T50 40x30 mm", 40, 30)])
+        self.assertEqual(out.count("*Option: CUSTOMSIZE"), 0)
+        self.assertEqual(out.count("*Option: FORM_T50_40x30_mm"), 1)
+        self.assertNotIn("*Option: A4", out)
 
 
 if __name__ == "__main__":
