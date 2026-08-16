@@ -7,7 +7,7 @@ Issues and pull requests are welcome. Please read [docs/development.md](docs/dev
 - Run `python -m unittest tests.test_core tests.test_ipp tests.test_winpaper -v`
 - If you change HID framing or status bits, test on a real T50 (`python -m t50 probe` / `test`)
 - If you change `layout_on_tape`, print a known 40×30 mm PDF at Actual size and say what you saw
-- Do not wire `t50.winpaper` into setup
+- Do not wire `t50.winpaper.apply_label_paper()` into setup (breaks the paper list). `apply_custom_paper_support()` is wired from `add_ipp_printer()`.
 
 ## Scope
 

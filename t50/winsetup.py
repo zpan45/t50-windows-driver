@@ -120,6 +120,13 @@ def add_ipp_printer() -> None:
     if r.returncode != 0:
         raise RuntimeError((r.stderr or r.stdout or "Add-Printer failed").strip())
     log.info("Add-Printer ok: %s", (r.stdout or "").strip())
+    try:
+        from t50.winpaper import apply_custom_paper_support
+
+        names = apply_custom_paper_support()
+        log.info("custom paper enabled (%s sizes)", len(names))
+    except Exception:
+        log.exception("custom paper patch failed; only A4/Letter will appear")
 
 
 def remove_ipp_printer() -> None:

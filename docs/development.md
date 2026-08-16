@@ -68,5 +68,6 @@ Prefer `python -m t50 setup` / **Repair printer…** over the PowerShell helpers
 ## What not to do
 
 - Do not call `t50.winpaper.apply_label_paper()` from setup. It breaks the IPP class driver’s paper list.
+- Setup calls `apply_custom_paper_support()`, which creates one **T50 WxH mm** form, makes it the GPD default, and removes A4/Letter. Do not use `CUSTOMSIZE` alone — the IPP class driver shows that as **User Defined Size**.
 - Do not add ESC/POS or ZPL — the T50 will ignore it.
 - Do not share the HID handle with `Supvan_T50_Service` or Katasymbol Editor.

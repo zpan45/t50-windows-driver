@@ -43,7 +43,7 @@ flowchart LR
 | `t50.printer` | Print job state machine over HID (`RLock` on I/O) |
 | `t50.hidwin` | SetupAPI + `hid.dll` overlapped I/O (no extra native deps) |
 | `t50.winsetup` | UAC, `Add-Printer`, stop vendor service, Run key |
-| `t50.winpaper` | **Unused.** Experimental V4 GPD/PDC patch; it breaks the paper list |
+| `t50.winpaper` | Setup copies Print Server form names into the per-queue GPD. Do not call `apply_label_paper()` (PDC patch) |
 
 ## Print pipeline
 
