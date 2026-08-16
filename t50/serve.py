@@ -60,6 +60,7 @@ class T50Server:
         self.host = host
         self.port = port
         self.density = density
+        self.crop_whitespace = True
         self.print_lock = threading.Lock()
         self.device: Printer | None = None
         uri = f"ipp://{host}:{port}/ipp/print"
@@ -124,7 +125,9 @@ class T50Server:
             raise PrinterError("printer not open")
         with self.print_lock:
             for i, img in enumerate(images, 1):
-                bits, width, height = layout_on_tape(img, tape_w, tape_h)
+                bits, width, height = layout_on_tape(
+                    img, tape_w, tape_h, crop_whitespace=self.crop_whitespace
+                )
                 log.info("printing page %s/%s %sx%s", i, len(images), width, height)
                 self.device.print_page(bits, width, height, density=self.density)
 

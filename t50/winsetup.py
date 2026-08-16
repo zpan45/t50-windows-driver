@@ -76,6 +76,17 @@ def log_path() -> Path:
     return data_dir() / "t50.log"
 
 
+def crop_whitespace_enabled() -> bool:
+    path = data_dir() / "crop-whitespace"
+    if not path.is_file():
+        return True
+    return path.read_text(encoding="utf-8").strip() != "0"
+
+
+def set_crop_whitespace(enabled: bool) -> None:
+    (data_dir() / "crop-whitespace").write_text("1" if enabled else "0", encoding="utf-8")
+
+
 def is_admin() -> bool:
     try:
         return bool(ctypes.windll.shell32.IsUserAnAdmin())

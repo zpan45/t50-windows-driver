@@ -12,8 +12,10 @@ from t50.i18n import t
 from t50.printer import PrinterError
 from t50.serve import PRINTER_NAME, T50Server
 from t50.winsetup import (
+    crop_whitespace_enabled,
     elevate_and_wait,
     printer_installed,
+    set_crop_whitespace,
     set_startup,
     startup_enabled,
 )
@@ -26,11 +28,12 @@ class T50App:
         self.server: T50Server | None = None
         self.root = tk.Tk()
         self.root.title(t("app_title"))
-        self.root.geometry("440x310")
+        self.root.geometry("440x340")
         self.root.resizable(False, False)
         self.status = tk.StringVar(value=t("starting"))
         self.tape = tk.StringVar(value="")
         self.startup_var = tk.BooleanVar(value=startup_enabled())
+        self.crop_var = tk.BooleanVar(value=crop_whitespace_enabled())
         self._build()
         self.root.protocol("WM_DELETE_WINDOW", self._on_close)
         self.root.after(200, self._boot)
@@ -45,7 +48,13 @@ class T50App:
             text=t("start_with_windows"),
             variable=self.startup_var,
             command=self._toggle_startup,
-        ).pack(anchor="w", padx=16, pady=10)
+        ).pack(anchor="w", padx=16, pady=(10, 2))
+        ttk.Checkbutton(
+            self.root,
+            text=t("crop_whitespace"),
+            variable=self.crop_var,
+            command=self._toggle_crop,
+        ).pack(anchor="w", padx=16, pady=(0, 8))
         btns = ttk.Frame(self.root)
         btns.pack(fill="x", padx=16, pady=8)
         ttk.Button(btns, text=t("test_print"), command=self._test_print).pack(side="left")
@@ -71,6 +80,7 @@ class T50App:
             self.status.set(t("connecting"))
             self.root.update_idletasks()
             self.server = T50Server()
+            self.server.crop_whitespace = bool(self.crop_var.get())
             self.server.start_background(require_device=True)
             if not startup_enabled():
                 set_startup(True)
@@ -135,6 +145,17 @@ class T50App:
             msg = self._ui_exc(exc)
             self.status.set(t("setup_failed"))
             messagebox.showerror(t("app_title"), msg, parent=self.root)
+
+    def _toggle_crop(self) -> None:
+        enabled = bool(self.crop_var.get())
+        try:
+            set_crop_whitespace(enabled)
+        except Exception as exc:
+            messagebox.showerror(t("app_title"), str(exc), parent=self.root)
+            self.crop_var.set(crop_whitespace_enabled())
+            return
+        if self.server:
+            self.server.crop_whitespace = enabled
 
     def _toggle_startup(self) -> None:
         try:
