@@ -350,21 +350,24 @@ def layout_on_tape(
     tape_width_dots: int,
     tape_height_dots: int,
     pad: int = 8,
+    *,
+    crop_whitespace: bool = True,
 ) -> tuple[bytes, int, int]:
-    """Crop, optionally rotate, and center an 8-bit page onto the tape; 1-bit last."""
+    """Optionally crop, then rotate/center an 8-bit page onto the tape; 1-bit last."""
     _require_pil()
     img = img.convert("L")
     src_w, src_h = img.size
-    ink = ImageOps.invert(img)
-    bbox = ink.getbbox()
-    if bbox is not None:
-        left, top, right, bottom = bbox
-        left = max(0, left - pad)
-        top = max(0, top - pad)
-        right = min(src_w, right + pad)
-        bottom = min(src_h, bottom + pad)
-        if not (right - left >= src_w - 2 and bottom - top >= src_h - 2):
-            img = img.crop((left, top, right, bottom))
+    if crop_whitespace:
+        ink = ImageOps.invert(img)
+        bbox = ink.getbbox()
+        if bbox is not None:
+            left, top, right, bottom = bbox
+            left = max(0, left - pad)
+            top = max(0, top - pad)
+            right = min(src_w, right + pad)
+            bottom = min(src_h, bottom + pad)
+            if not (right - left >= src_w - 2 and bottom - top >= src_h - 2):
+                img = img.crop((left, top, right, bottom))
 
     w, h = img.size
     scale_0 = _fit_scale(w, h, tape_width_dots, tape_height_dots)
@@ -388,11 +391,12 @@ def layout_on_tape(
     img = img.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
     img = _sharpen_gray(img)
     log.info(
-        "layout_on_tape: content %sx%s rotate=%s mirror=lr scaled=%s onto %sx%s tape",
+        "layout_on_tape: content %sx%s rotate=%s mirror=lr scaled=%s crop=%s onto %sx%s tape",
         w,
         h,
         270 if rotated else 0,
         scaled,
+        crop_whitespace,
         tape_width_dots,
         tape_height_dots,
     )

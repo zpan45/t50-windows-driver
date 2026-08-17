@@ -162,6 +162,24 @@ class LayoutTests(unittest.TestCase):
         self.assertGreater(ink_w, 240)
         self.assertGreater(ink_h, 160)
 
+    def test_layout_keeps_margins_when_crop_disabled(self):
+        from PIL import Image, ImageDraw
+
+        from t50.raster import _unpack_1bpp_msb
+
+        img = Image.new("L", (200, 120), 255)
+        ImageDraw.Draw(img).rectangle([8, 8, 40, 40], fill=0)
+        cropped, _, _ = layout_on_tape(img, 200, 120, crop_whitespace=True)
+        kept, _, _ = layout_on_tape(img, 200, 120, crop_whitespace=False)
+        cropped_bw = _unpack_1bpp_msb(cropped, 200, 120)
+        kept_bw = _unpack_1bpp_msb(kept, 200, 120)
+        cropped_bbox = cropped_bw.point(lambda p: 255 if p == 0 else 0).getbbox()
+        kept_bbox = kept_bw.point(lambda p: 255 if p == 0 else 0).getbbox()
+        self.assertIsNotNone(cropped_bbox)
+        self.assertIsNotNone(kept_bbox)
+        self.assertLess(kept_bbox[1], 20)
+        self.assertGreater(cropped_bbox[1], kept_bbox[1])
+
     def test_antialiased_gray_becomes_black(self):
         from PIL import Image
 

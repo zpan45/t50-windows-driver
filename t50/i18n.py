@@ -10,6 +10,7 @@ _EN = {
     "app_title": "T50 Label",
     "starting": "Starting…",
     "start_with_windows": "Start with Windows",
+    "crop_whitespace": "Crop whitespace",
     "test_print": "Test print",
     "repair_printer": "Repair printer…",
     "repair_hint": (
@@ -53,6 +54,7 @@ _ZH = {
     "app_title": "T50 标签打印机",
     "starting": "正在启动…",
     "start_with_windows": "开机自动启动",
+    "crop_whitespace": "裁切空白边距",
     "test_print": "测试打印",
     "repair_printer": "安装/修复打印机…",
     "repair_hint": (

@@ -17,11 +17,29 @@ You do **not** need Python or a git clone.
 3. Leave the **T50 Label** window open while you print.
 4. In Word, Chrome, Acrobat, or any other app, print to **T50 Label**.
 
-Acrobat: set the PDF page to the label size (for example 40×30 mm) and print **Actual size** / 实际大小 — not Fit / Shrink. The Windows print dialog will still list **A4** or **Letter**. That is a Microsoft IPP Class Driver limit, not a bug. The label is drawn onto that A4 page; T50 Label crops it onto the tape.
+### Paper size (label tape)
+
+The Microsoft IPP Class Driver normally only shows **A4** / **Letter**. On first run or **Repair printer…**, T50 Label:
+
+1. Reads the loaded tape size from the printer (for example 40×30 mm)
+2. Creates a Windows Print Server form named **T50 40x30 mm** (or the current tape size)
+3. Sets that form as the only paper size on the **T50 Label** queue (A4/Letter are removed from the queue GPD)
+
+Then in Word, Chrome, Acrobat, and so on:
+
+1. Choose printer **T50 Label**
+2. Set paper / page size to **T50 40x30 mm** (or your tape’s form name)
+3. Print **Actual size** / 实际大小 — not Fit / Shrink
+
+If you change rolls to a different size, run **Repair printer…** again so the form matches the new tape.
+
+### Crop whitespace
+
+**Crop whitespace** (on by default in the T50 Label window) trims blank margins before centering on the tape. Turn it **off** if you need app margins (for example 2 mm vs 3 mm) to stay on the label.
 
 The official **Katasymbol Editor** and this app **cannot share the HID device**. Quit the vendor app first; this project stops `Supvan_T50_Service` on start.
 
-If the queue is missing or jobs never arrive, click **Repair printer…** and accept UAC. That only reinstalls the Windows queue. It does not add 40×30 mm to Acrobat’s paper list and does not change print quality.
+If the queue is missing or jobs never arrive, click **Repair printer…** and accept UAC. That reinstalls the Windows queue and recreates the tape-size paper form.
 
 Check **Start with Windows** to launch at login.
 
@@ -29,8 +47,9 @@ Check **Start with Windows** to launch at login.
 
 - A small always-on window (**T50 Label**) that holds the USB device and an IPP server on `http://127.0.0.1:8631/ipp/print`
 - A Windows queue using the **Microsoft IPP Class Driver** (`Add-Printer -IppURL`)
-- Automatic crop / rotate / mirror so a 40×30 mm PDF printed at **Actual size** lands on the loaded tape
-- Test print, Start with Windows, and **Repair printer…** (re-registers the queue)
+- Setup creates a Print Server form for the loaded tape and makes it the only paper size (A4/Letter removed from the queue GPD)
+- Automatic rotate / mirror / optional whitespace crop so a label-sized page lands on the tape
+- Test print, Start with Windows, Crop whitespace, and **Repair printer…** (re-registers the queue)
 
 The printer itself is:
 
@@ -107,7 +126,7 @@ Word / Chrome / Acrobat
    Microsoft IPP Class Driver  ── PWG raster (often A4 @ 203 DPI, PackBits)
         │  HTTP POST 127.0.0.1:8631  (chunked)
         ▼
-t50 IPP server  →  crop, rotate 270°, flip L/R, sharpen, 1-bit
+t50 IPP server  →  optional whitespace crop, rotate 270°, flip L/R, sharpen, 1-bit
         ▼
 column-major LSB bitmap → LZMA → USB HID reports
         ▼
@@ -119,8 +138,9 @@ Details: [docs/architecture.md](docs/architecture.md), [docs/windows-printing.md
 ## Known limits
 
 - **Paper size in the print dialog** is the loaded tape. Setup creates a Print Server form named **T50 40x30 mm** (or the current tape size), sets it as default, and drops A4/Letter from the queue GPD. Do not use `apply_label_paper()` (that PDC patch breaks `DeviceCapabilities`).
+- **Crop whitespace** (default on) removes blank page margins before centering. Turn it off in the T50 Label window if you need those margins to print.
 - **203 DPI thermal** is the physical limit. Vector PDFs are rasterized by Windows with gray edges; the app sharpens and thresholds. Asking Windows for 406 DPI (when the driver honors it) and then downsampling can look a bit cleaner.
-- **Orientation** is tuned for landscape labels (for example 40×30 mm) that Windows places as a tall crop on A4. Other page shapes may need a layout tweak.
+- **Orientation** is tuned for landscape labels (for example 40×30 mm). Other page shapes may need a layout tweak.
 - Not a signed WHQL driver. Some enterprise policies block unsigned local IPP printers.
 - Only the T50 HID family above is supported.
 
