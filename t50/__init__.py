@@ -1,6 +1,6 @@
 """T50M Pro / Katasymbol Windows printer application."""
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 VID = 0x1820
 PID = 0x207F
